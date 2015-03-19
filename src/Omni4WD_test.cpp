@@ -125,10 +125,10 @@ void command_executer(int cmd, int vel, int interval){
                         backOff(vel, interval);
                 break;
                 case CAR_TURN_LEFT:
-                        rotateLeft(vel, interval);
+                        turnLeft(vel, interval);
                 break;
                 case CAR_TURN_RIGHT:
-                        rotateRight(vel, interval);
+                        turnRight(vel, interval);
                 break;
                 case CAR_STOP:
                         allStop(0, 0);

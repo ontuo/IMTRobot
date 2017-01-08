@@ -125,14 +125,20 @@ unsigned int Omni3WD::setCarRotateRight(unsigned int speedMMPS) {
 
 unsigned int Omni3WD::getCarSpeedMMPS() const {
 	unsigned int speedMMPS=wheelBackGetSpeedMMPS();
-	if(wheelRightGetSpeedMMPS()>speedMMPS) speedMMPS=wheelRightGetSpeedMMPS();
-	if(wheelLeftGetSpeedMMPS()>speedMMPS) speedMMPS=wheelLeftGetSpeedMMPS();
+	if(wheelRightGetSpeedMMPS()>speedMMPS) 
+	{
+		speedMMPS=wheelRightGetSpeedMMPS();
+	}
+	if(wheelLeftGetSpeedMMPS()>speedMMPS) 
+	{
+		speedMMPS=wheelLeftGetSpeedMMPS();
+	}
 	return speedMMPS;
 }
 unsigned int Omni3WD::setCarSpeedMMPS(unsigned int speedMMPS,unsigned int ms) {
 	unsigned int carStat=getCarStat();
-	unsigned int currSpeed=getCarSpeedMMPS();
-
+	int currSpeed= getCarSpeedMMPS();  //
+	int speedTemp = speedMMPS;
 	unsigned int (Omni3WD::*carAction)(unsigned int speedMMPS);
 	switch(carStat) {
 		case STAT_UNKNOWN:	// no break here
@@ -152,13 +158,13 @@ unsigned int Omni3WD::setCarSpeedMMPS(unsigned int speedMMPS,unsigned int ms) {
 			carAction=&Omni3WD::setCarRotateRight; break;
 	}
 
-	if(ms<100 || abs(speedMMPS-currSpeed)<10) {
+	if(ms<100 || abs(speedTemp-currSpeed)<10) {
 		(this->*carAction)(speedMMPS);
 		return getCarSpeedMMPS();
 	}
 
 	for(int time=0,speed=currSpeed;time<=ms;time+=50) {
-		speed=map(time,0,ms,currSpeed,speedMMPS);
+		speed=abs(map(time,0,ms,currSpeed,speedTemp));
 		(this->*carAction)(speed);
 		delayMS(50);
 	}
@@ -171,28 +177,31 @@ unsigned int Omni3WD::setCarSlow2Stop(unsigned int ms) {
 }
 
 unsigned int Omni3WD::wheelBackSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelBack->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelBack->setSpeedMMPS(speedMMPS,dir));
+	return _wheelBack->setSpeedMMPS(speedMMPS,dir);
 }
-unsigned int Omni3WD::wheelBackGetSpeedMMPS() const {
-	//return _wheelBack->getSpeedMMPS();
-	return abs(_wheelBack->getSpeedMMPS());
+/*unsigned int Omni3WD::wheelBackGetSpeedMMPS() const {
+	return _wheelBack->getSpeedMMPS();
+}*/
+int Omni3WD::wheelBackGetSpeedMMPS() const {
+	return _wheelBack->getSpeedMMPS();
 }
 unsigned int Omni3WD::wheelRightSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelRight->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelRight->setSpeedMMPS(speedMMPS,dir));
+	return _wheelRight->setSpeedMMPS(speedMMPS,dir);
 }
-unsigned int Omni3WD::wheelRightGetSpeedMMPS() const {
-	//return _wheelRight->getSpeedMMPS();
-	return abs(_wheelRight->getSpeedMMPS());
+/*unsigned int Omni3WD::wheelRightGetSpeedMMPS() const {
+	return _wheelRight->getSpeedMMPS();
+}*/
+int Omni3WD::wheelRightGetSpeedMMPS() const {
+	return _wheelRight->getSpeedMMPS();
 }
 unsigned int Omni3WD::wheelLeftSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelLeft->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelLeft->setSpeedMMPS(speedMMPS,dir));
+	return _wheelLeft->setSpeedMMPS(speedMMPS,dir);
 }
-unsigned int Omni3WD::wheelLeftGetSpeedMMPS() const {
-	//return _wheelLeft->getSpeedMMPS();
-	return abs(_wheelLeft->getSpeedMMPS());
+/*unsigned int Omni3WD::wheelLeftGetSpeedMMPS() const {
+	return _wheelLeft->getSpeedMMPS();
+}*/
+int Omni3WD::wheelLeftGetSpeedMMPS() const {
+	return _wheelLeft->getSpeedMMPS();
 }
 bool Omni3WD::PIDEnable(float kc,float taui,float taud,unsigned int interval) {
 	return _wheelBack->PIDEnable(kc,taui,taud,interval) &&
@@ -231,17 +240,17 @@ void Omni3WD::demoActions(unsigned int speedMMPS,unsigned int duration,unsigned 
 		&Omni3WD::setCarRotateRight
 	};
 	for(int i=0;i<6;++i) {
-		(this->*carAction[i])(0);
+		(this->*carAction[i])(speedMMPS);
 		setCarSpeedMMPS(speedMMPS,uptime);
 		delayMS(duration,debug);
 		setCarSlow2Stop(uptime);
 	}
     setCarStop();
     delayMS(duration,debug);
-    switchMotorsLeft();
+    //switchMotorsLeft();
 }
-/*	// original
-void Omni3WD::demoActions(unsigned int speedMMPS,unsigned int ms,bool debug) {
+	// original
+void Omni3WD::demoActions_Orginal(unsigned int speedMMPS,unsigned int ms,bool debug) {
 	setCarAdvance(speedMMPS);
     delayMS(ms,debug);
     setCarBackoff(speedMMPS);
@@ -258,7 +267,7 @@ void Omni3WD::demoActions(unsigned int speedMMPS,unsigned int ms,bool debug) {
     delayMS(1000,debug);
     switchMotorsLeft();
 }
- */
+
 void Omni3WD::debugger(bool wheelBackDebug,bool wheelRightDebug,bool wheelLeftDebug) const {
 	if(wheelBackDebug) _wheelBack->debugger();
 	if(wheelRightDebug) _wheelRight->debugger();

@@ -37,16 +37,20 @@ public:
 	unsigned int setCarSlow2Stop(unsigned int ms=1000);
 
 	unsigned int wheelBackSetSpeedMMPS(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
-	unsigned int wheelBackGetSpeedMMPS() const;
+	//unsigned int wheelBackGetSpeedMMPS() const;
+	int wheelBackGetSpeedMMPS() const;
 	unsigned int wheelRightSetSpeedMMPS(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
-	unsigned int wheelRightGetSpeedMMPS() const;
+	//unsigned int wheelRightGetSpeedMMPS() const;
+	int wheelRightGetSpeedMMPS() const;
 	unsigned int wheelLeftSetSpeedMMPS(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
-	unsigned int wheelLeftGetSpeedMMPS() const;
+	//unsigned int wheelLeftGetSpeedMMPS() const;
+	int wheelLeftGetSpeedMMPS() const;
 	bool PIDEnable(float kc=KC,float taui=TAUI,float taud=TAUD,unsigned int interval=1000);
 	bool PIDRegulate();
 	void delayMS(unsigned int ms=100, bool debug=false);
 	void demoActions(unsigned int speedMMPS=100,unsigned int duration=5000,
 					unsigned int uptime=500,bool debug=false);
+	void demoActions_Orginal(unsigned int speedMMPS = 20,unsigned int ms = 5000,bool debug = false) ;
 	void debugger(bool wheelBackDebug=true,bool wheelRightDebug=true,bool wheelLeftDebug=true) const;
 
 	enum {STAT_UNKNOWN,

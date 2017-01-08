@@ -263,8 +263,7 @@ int Omni4WD::setCarSlow2Stop(unsigned int ms) {
 }
 
 unsigned int Omni4WD::wheelULSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelUL->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelUL->setSpeedMMPS(speedMMPS,dir));
+	return _wheelUL->setSpeedMMPS(speedMMPS,dir);
 }
 int Omni4WD::wheelULSetSpeedMMPS(int speedMMPS) { // direction sensitive, 201208
 	return _wheelUL->setSpeedMMPS(speedMMPS);
@@ -273,8 +272,7 @@ int Omni4WD::wheelULGetSpeedMMPS() const {
 	return _wheelUL->getSpeedMMPS();
 }
 unsigned int Omni4WD::wheelLLSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelLL->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelLL->setSpeedMMPS(speedMMPS,dir));
+	return _wheelLL->setSpeedMMPS(speedMMPS,dir);
 }
 int Omni4WD::wheelLLSetSpeedMMPS(int speedMMPS) { // direction sensitive, 201208
 	return _wheelLL->setSpeedMMPS(speedMMPS);
@@ -283,8 +281,7 @@ int Omni4WD::wheelLLGetSpeedMMPS() const {
 	return _wheelLL->getSpeedMMPS();
 }
 unsigned int Omni4WD::wheelLRSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelLR->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelLR->setSpeedMMPS(speedMMPS,dir));
+	return _wheelLR->setSpeedMMPS(speedMMPS,dir);
 }
 int Omni4WD::wheelLRSetSpeedMMPS(int speedMMPS) { // direction sensitive, 201208
 	return _wheelLR->setSpeedMMPS(speedMMPS);
@@ -293,8 +290,7 @@ int Omni4WD::wheelLRGetSpeedMMPS() const {
 	return _wheelLR->getSpeedMMPS();
 }
 unsigned int Omni4WD::wheelURSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
-	//return _wheelUR->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelUR->setSpeedMMPS(speedMMPS,dir));
+	return _wheelUR->setSpeedMMPS(speedMMPS,dir);
 }
 int Omni4WD::wheelURSetSpeedMMPS(int speedMMPS) { // direction sensitive, 201208
 	return _wheelUR->setSpeedMMPS(speedMMPS);
@@ -319,6 +315,15 @@ bool Omni4WD::PIDDisable() {
 bool Omni4WD::PIDGetStatus() {
 	return _wheelUL->PIDGetStatus() && _wheelLL->PIDGetStatus() && _wheelLR->PIDGetStatus() && _wheelUR->PIDGetStatus();
 }
+float Omni4WD::PIDGetP_Param() {
+	return _wheelUL->GetP_Param();
+}
+float Omni4WD::PIDGetI_Param() {
+	return _wheelUL->GetI_Param();
+}
+float Omni4WD::PIDGetD_Param() {
+	return _wheelUL->GetD_Param();
+}
 bool Omni4WD::PIDRegulate() {
 	return _wheelUL->PIDRegulate() && _wheelLL->PIDRegulate() && _wheelLR->PIDRegulate() && _wheelUR->PIDRegulate();
 }
@@ -331,8 +336,10 @@ void Omni4WD::delayMS(unsigned int ms,unsigned int slot,bool debug) {
 	}
 }
  */
-void Omni4WD::delayMS(unsigned int ms,bool debug) {		// 201209
-	for(unsigned long endTime=millis()+ms;millis()<endTime;) {
+void Omni4WD::delayMS(unsigned int ms,bool debug,unsigned char* actBreak) {		// 201209
+	for(unsigned long endTime=millis()+ms;millis()<endTime;) 
+	{
+		if(actBreak) return;
 		PIDRegulate();
 		if(debug && (millis()%500==0)) debugger();
 		if(endTime-millis()>=SAMPLETIME) delay(SAMPLETIME);

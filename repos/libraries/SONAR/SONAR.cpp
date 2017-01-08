@@ -1,5 +1,4 @@
 #include<SONAR.h>
-
 //static vars
 const unsigned char SONAR::addrCmdTemplate[]={0x55,0xaa,0xab,0x01,0x55,0xff,0x00};
 // const unsigned char SONAR::addrDatTemplate[]={0x55,0xaa,0xff,0x01,0x55,0xff,0xff};
@@ -11,7 +10,7 @@ const unsigned char SONAR::tempCmdTemplate[]={0x55,0xaa,0xff,0x00,0x03,0x00};
 
 unsigned char SONAR::_pinCtrl;
 //bool SONAR::_mode;
-unsigned char SONAR::_recvBuf[bufSize];
+//unsigned char SONAR::_recvBuf[bufSize];
 
 
 SONAR::SONAR(unsigned char addr) {
@@ -39,7 +38,8 @@ unsigned char SONAR::setAddr(unsigned char addr) {
 		unsigned startTime=millis();
 		unsigned int delta=0;
 		bool gotKey=false;
-		
+
+		pinMode(keyS7, INPUT);	// 201209
 		while(digitalRead(keyS7)==KEYPRESSED) {
 			gotKey=true;
 			delay(100);			
@@ -52,7 +52,7 @@ unsigned char SONAR::setAddr(unsigned char addr) {
 		}
 		
 		delta/=1000;
-		if(0x1<=delta && delta<=0x20) addr=0x10+delta;
+		if(0x1<=delta && delta<=0x30) addr=0x10+delta;
 	}
 
 	unsigned char addrCmd[sizeof(addrCmdTemplate)];
@@ -148,6 +148,7 @@ unsigned char* SONAR::generateTempCmd(unsigned char* tempCmd,unsigned char addr)
 
 unsigned char SONAR::sendCmd(unsigned char* cmd,unsigned char size) {
 	debug();
+	init();	// 201209
 	setTX();
 	for(int i=0;i<size;++i) {
 		//Serial.print(cmd[i]);
@@ -166,6 +167,7 @@ unsigned char SONAR::clearBuf() {
 unsigned char SONAR::recvDat(unsigned char desiredSize) {
 	debug();
 	clearBuf();
+	init();	// 201209
 	setRX();
 	unsigned char datSize=0;
 	
@@ -181,7 +183,9 @@ unsigned char SONAR::recvDat(unsigned char desiredSize) {
 #else//for arduino
 	for(int j=0;datSize<desiredSize && j<5000;++j) {
 		unsigned char ibyte=Serial.read();
-		if(ibyte!=0xff) _recvBuf[datSize++]=ibyte;
+		if(ibyte!=0xff) {
+			_recvBuf[datSize++]=ibyte;
+		}
 	}
 #endif
 
@@ -215,7 +219,7 @@ void SONAR::init(unsigned char pinCtrl,unsigned int baudrate) {
 	Serial.begin(baudrate);
 	setPinCtrl(pinCtrl);
 	pinMode(getPinCtrl(),OUTPUT);
-	pinMode(keyS7, INPUT);
+	//pinMode(keyS7, INPUT);
 	setTX();
 }
 void SONAR::release() {
@@ -282,7 +286,7 @@ float SONAR::getTemp() {	// to reduce binary code, use int, instead of float
 	}
 	return 0xffff;
 }
- */
+*/
 
 
 

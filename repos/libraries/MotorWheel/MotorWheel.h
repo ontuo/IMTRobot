@@ -1,19 +1,32 @@
 
 /*
-	"what's new" has been moved to changes.txt
+
+
+V1.1	201104
+1. motorwheel library version 1.1,compatible with maple.
+
+V1.1.1	201110
+1. Add Acceleration
+
+V1.2	201207
+1. Double CPR from 12 to 24, Interrupt Type from RISING to CHANGE.
+2. Reduce default sample time from 10ms to 5ms.
+3. Compatible with Namiki 22CL-3501PG80:1, by "#define _NAMIKI_MOTOR" before "#include ...".
+
+V1.3	201209
+1. R2WD::delayMS(), Omni3WD::delayMS(), Omni4WD::delayMS() are re-implemented, more exactly.
+2. getSpeedRPM(), setSpeedRPM(), getSpeedMMPS(), setSpeedMMPS() are plug-minus/direction sensitive now.
+3. Acceleration is disabled.
+
+V1.4	201209	Not Released
+1. Increase CPR from 24 to 48 for Faulhaber 2342.
+
+V1.5	201209	Omni4WD is re-implemented, and now return value of Omni4WD::getSpeedMMPS() is correct.
+
+V1.6	added by nightcat 2017-01-05 support 3pin ENA(_pinPWM) for speed and INA(_pinDir) INB(_pinDirB)  for direction  control motorwheel .
+if use 2pin . keep _pinDirB=false
+
  */
-
-
-
-/*
-	class PID
-	class Motor
-	class GearedMotor
-	class MotorWheel
- */
-
-#ifndef MotorWheel_H
-#define MotorWheel_H
 
 /*for maple*/
 #if defined(BOARD_maple) || defined(BOARD_maple_native) || defined(BOARD_maple_mini)
@@ -23,23 +36,34 @@
 
 /*for arduino*/	
 #else
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "Arduino.h"
-#else
-	#include "WProgram.h"
-#endif
-	#include <PinChangeInt.h>
-	#include <PinChangeIntConfig.h>
-	#include <fuzzy_table.h>
-	#include <PID_Beta6.h>	
+	//#include<Arduino.h>
+	//#include<WProgram.h>
+	#include<PID_Beta6.h>
+	#include<PinChangeInt.h>
+	#include<Motors.h>             //Added by nightcat 2017-01-08
+	
 #endif
 
+/*
+
+	class PID
+	class Motor
+	class GearedMotor
+	class MotorWheel
+
+ */
+
+#ifndef MotorWheel_H
+#define MotorWheel_H
 
 #define DIR_ADVANCE HIGH
 #define DIR_BACKOFF LOW
 
 #define  PIN_UNDEFINED 255
 #define  REF_VOLT 12
+
+//#define _CLUB_MOTOR 1  //Added by nightcat , for _CLUB_MOTOR  Move to Motors.h 2017-01-08
+
 /*for maple*/
 #if defined(BOARD_maple) || defined(BOARD_maple_native) || defined(BOARD_maple_mini)
 	#define  MAX_PWM  3599
@@ -50,17 +74,36 @@
 	
 #endif
 
+
+
+// Move to Motors.h 2017-01-08
+/*
 #ifdef _NAMIKI_MOTOR
 	#define	 TRIGGER CHANGE
 	#define  CPR 4	// Namiki motor
 	#define  DIR_INVERSE
 	#define  REDUCTION_RATIO 80
+//_NEXUS_MOTOR Added by nightcat 2017-01-3 	
+#elif _NEXUS_MOTOR
+	#define	 TRIGGER CHANGE
+	#define  CPR 8	// nexus motor
+	#define  DIR_INVERSE !
+	#define  REDUCTION_RATIO 80
+	
+#elif _CLUB_MOTOR
+	#define	 TRIGGER CHANGE
+	#define  CPR 13	// 
+	#define  DIR_INVERSE !
+	#define  REDUCTION_RATIO 30
+	
 #else
 	#define	 TRIGGER RISING
 	#define  CPR 12	// Faulhaber motor
 	#define  DIR_INVERSE !
 	#define  REDUCTION_RATIO 64
 #endif
+*/
+
 
 #define  MAX_SPEEDRPM 8000
 //#define  DESIRED_SPEEDRPM 3000
@@ -224,7 +267,7 @@ struct ISRVars {
 
 class Motor: public PID {
 public:
-	Motor(unsigned char _pinPWM,unsigned char _pinDir,
+	Motor(unsigned char _pinPWM,unsigned char _pinDir, unsigned char _pinDirB,
 			unsigned char _pinIRQ,unsigned char _pinIRQB,
 			struct ISRVars* _isr);
 	
@@ -278,8 +321,9 @@ public:
 	struct ISRVars* isr;
 
 private:
-	unsigned char pinPWM;
-	unsigned char pinDir;
+	unsigned char pinPWM;       // as ENA
+	unsigned char pinDir;       // as INA 
+	unsigned char pinDirB;      // as INB Modified 2017-01-03, 3PIN control
 	//unsigned char pinIRQ;		// moved to isr
 	//unsigned char pinIRQB;
 
@@ -312,7 +356,7 @@ private:
 #endif
 class GearedMotor: public Motor {	// RPM
 public:
-	GearedMotor(unsigned char _pinPWM,unsigned char _pinDir,
+	GearedMotor(unsigned char _pinPWM,unsigned char _pinDir, unsigned char _pinDirB,
 					unsigned char _pinIRQ,unsigned char _pinIRQB,
 					struct ISRVars* _isr,
 					unsigned int _ratio=REDUCTION_RATIO);
@@ -335,7 +379,7 @@ private:
 #define CIRMM 314	// mm
 class MotorWheel: public GearedMotor {	// 
 public:
-	MotorWheel(unsigned char _pinPWM,unsigned char _pinDir,
+	MotorWheel(unsigned char _pinPWM,unsigned char _pinDir, unsigned char _pinDirB,
 				unsigned char _pinIRQ,unsigned char _pinIRQB,
 				struct ISRVars* _isr,
 				unsigned int ratio=REDUCTION_RATIO,unsigned int cirMM=CIRMM);

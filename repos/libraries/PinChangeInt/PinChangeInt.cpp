@@ -2,9 +2,8 @@
 	PinChangeInt.cpp
 */
 
-#ifndef PinChangeInt_h
 #include <PinChangeInt.h>
-#endif
+
 
 PCintPort::PCintPin PCintPort::PCintPin::pinDataAlloc[MAX_PIN_CHANGE_PINS];
 
@@ -17,7 +16,7 @@ PCintPort PCintPort::pcIntPorts[] = {
 
 void PCintPort::addPin(uint8_t mode,uint8_t mask,PCIntvoidFuncPtr userFunc)
 {
-	int i = 0;
+	//int i = 0;
 	PCintPin* p = PCintPin::pinDataAlloc;
 	do {
 		if (!p->PCintMode) { // found an available pin data structure
@@ -33,6 +32,15 @@ void PCintPort::addPin(uint8_t mode,uint8_t mask,PCIntvoidFuncPtr userFunc)
 					pcmask |= p->PCIntMask = mask;
 					// enable the interrupt
 					PCICR |= PCICRbit;
+
+				#ifdef	DEBUG
+					Serial.print("BitMask = ");
+					Serial.print(mask, BIN);
+					Serial.print("; ");
+					Serial.print("slot = ");
+					Serial.println((int)(t - &pcIntPins[0]), DEC);
+				#endif
+				
 					return;
 				}
 			}	 while (int(++t) < int(&pcIntPins[8]));
@@ -73,23 +81,56 @@ void PCintPort::delPin(uint8_t mask)
 void PCintPort::attachInterrupt(uint8_t pin, PCIntvoidFuncPtr userFunc, int mode)
 {
 	uint8_t portNum = digitalPinToPort(pin);
-	if ((portNum == NOT_A_PORT) || (userFunc == NULL)) {
-		return;
-	}
-	// map pin to PCIR register
-	uint8_t portIndex = portNum - 2;
-	PCintPort& port = PCintPort::pcIntPorts[portIndex];
+	#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+		if (((portNum != 2) && (portNum != 11)) 
+			|| (userFunc == NULL)
+			) {
+			
+		#ifdef	DEBUG
+			Serial.println("NOT_A_PORT det");
+		#endif
+		
+			return;
+		}
+		// map pin to PCIR register
+		uint8_t portIndex = (portNum == 2)?(0):(2);
+	#else
+		if ((portNum == NOT_A_PORT) || (userFunc == NULL)) {
+			return;
+		}
+		// map pin to PCIR register
+		uint8_t portIndex = portNum - 2;
+	#endif
+
+	#ifdef	DEBUG
+		Serial.print("portNum = ");
+		Serial.print(portNum, DEC);
+		Serial.print("; ");
+	#endif
+	
+	PCintPort &port = PCintPort::pcIntPorts[portIndex];
 	port.addPin(mode,digitalPinToBitMask(pin),userFunc);
 }
 
 void PCintPort::detachInterrupt(uint8_t pin)
 {
 	uint8_t portNum = digitalPinToPort(pin);
-	if (portNum == NOT_A_PORT) {
-		//Serial.println("NOT_A_PORT det");
-		return;
-	} 
-	PCintPort& port = PCintPort::pcIntPorts[portNum - 2];
+	#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+		if ((portNum != 2) && (portNum != 11)) {
+			//Serial.println("NOT_A_PORT det");
+			return;
+		}
+		uint8_t portIndex = (portNum == 2)?(0):(2);
+		PCintPort& port = PCintPort::pcIntPorts[portIndex];
+
+	#else
+		if (portNum == NOT_A_PORT) {
+			//Serial.println("NOT_A_PORT det");
+			return;
+		}
+		PCintPort& port = PCintPort::pcIntPorts[portNum - 2];
+	#endif
+	
 	port.delPin(digitalPinToBitMask(pin));
 }
 

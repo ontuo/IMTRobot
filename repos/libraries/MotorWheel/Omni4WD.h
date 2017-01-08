@@ -76,8 +76,11 @@ public:
 	bool PIDEnable(float kc=KC,float taui=TAUI,float taud=TAUD,unsigned int interval=1000);
 	bool PIDDisable();		// 201209
 	bool PIDGetStatus();	// 201209
+	float PIDGetP_Param();	// 201210
+	float PIDGetI_Param();	// 201210
+	float PIDGetD_Param();	// 201210
 	bool PIDRegulate();
-	void delayMS(unsigned int ms=100, bool debug=false);
+	void delayMS(unsigned int ms=100, bool debug=false,unsigned char* actBreak = 0);
 	void demoActions(unsigned int speedMMPS=100,unsigned int duration=5000,unsigned int uptime=500,bool debug=false);
 	void debugger(bool wheelULDebug=true,bool wheelLLDebug=true,
 					bool wheelLRDebug=true,bool wheelURDebug=true) const;

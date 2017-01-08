@@ -84,7 +84,7 @@ public:
 			tempCmdSize=6,
 			tempDatSize=8,
 			bufSize=8,
-			duration=40,
+			duration=60,
 			baudRate=19200,
 	};
 
@@ -109,7 +109,7 @@ private:
 	unsigned char _trigCmd[sizeof(trigCmdTemplate)];
 	unsigned char _distCmd[sizeof(distCmdTemplate)];
 
-	static unsigned char _recvBuf[bufSize];
+	/*static*/ unsigned char _recvBuf[bufSize];
 
 	static unsigned char* generateAddrCmd(unsigned char* addrCmd,unsigned char addr);
 	static unsigned char* generateTempCmd(unsigned char* tempCmd,unsigned char addr);
@@ -117,7 +117,7 @@ private:
 	unsigned char* generateTrigCmd();
 	unsigned char* generateDistCmd();
 
-	static unsigned char clearBuf();	
+	/*static*/ unsigned char clearBuf();	
 
 	/*
 	static const unsigned char dev11Addr[]={0x55,0xaa,0xab,0x01,0x55,0x11,0x11};

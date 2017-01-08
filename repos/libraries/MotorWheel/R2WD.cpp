@@ -60,39 +60,35 @@ unsigned int R2WD::setRadiusMM(unsigned int radiusMM) {
 	return getRadiusMM();
 }
 
-int R2WD::wheelRightSetSpeedMMPS(int speedMMPS,bool dir) {
-	//return _wheelRight->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelRight->setSpeedMMPS(speedMMPS,dir));
+unsigned int R2WD::wheelRightSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
+	return _wheelRight->setSpeedMMPS(speedMMPS,dir);
 }
-int R2WD::wheelRightGetSpeedMMPS() const {
-	//return _wheelRight->getSpeedMMPS();
-	return abs(_wheelRight->getSpeedMMPS());
+unsigned int R2WD::wheelRightGetSpeedMMPS() const {
+	return _wheelRight->getSpeedMMPS();
 }
-int R2WD::wheelLeftSetSpeedMMPS(int speedMMPS,bool dir) {
-	//return _wheelLeft->setSpeedMMPS(speedMMPS,dir);
-	return abs(_wheelLeft->setSpeedMMPS(speedMMPS,dir));
+unsigned int R2WD::wheelLeftSetSpeedMMPS(unsigned int speedMMPS,bool dir) {
+	return _wheelLeft->setSpeedMMPS(speedMMPS,dir);
 }
-int R2WD::wheelLeftGetSpeedMMPS() const {
-	//return _wheelLeft->getSpeedMMPS();
-	return abs(_wheelLeft->getSpeedMMPS());
+unsigned int R2WD::wheelLeftGetSpeedMMPS() const {
+	return _wheelLeft->getSpeedMMPS();
 }
 
 
-int R2WD::setMotorAll(int speedMMPS,bool dir) {
+unsigned int R2WD::setMotorAll(unsigned int speedMMPS,bool dir) {
 	wheelLeftSetSpeedMMPS(speedMMPS,dir);
 	wheelRightSetSpeedMMPS(speedMMPS,dir);
 	return wheelRightGetSpeedMMPS();
 }
-int R2WD::setMotorAllStop() {
+unsigned int R2WD::setMotorAllStop() {
 	return setMotorAll(0,DIR_ADVANCE);
 }
-int R2WD::setMotorAllAdvance(int speedMMPS) {
+unsigned int R2WD::setMotorAllAdvance(unsigned int speedMMPS) {
 	return setMotorAll(speedMMPS,DIR_ADVANCE);
 }
-int R2WD::setMotorAllBackoff(int speedMMPS) {
+unsigned int R2WD::setMotorAllBackoff(unsigned int speedMMPS) {
 	return setMotorAll(speedMMPS,DIR_BACKOFF);
 }
-int R2WD::setCarStop() {
+unsigned int R2WD::setCarStop() {
 	setCarStat(STAT_STOP);
 	return setMotorAll(0,DIR_ADVANCE);
 }
@@ -171,8 +167,7 @@ unsigned int R2WD::getCarSpeedMMPS() const {
 }
 unsigned int R2WD::setCarSpeedMMPS(unsigned int speedMMPS,unsigned int ms) {
 	unsigned int carStat=getCarStat();
-	int currSpeed=getCarSpeedMMPS();
-	//unsigned int currSpeed=getCarSpeedMMPS();
+	unsigned int currSpeed=getCarSpeedMMPS();
 
 	unsigned int (R2WD::*carAction)(unsigned int speedMMPS);
 	switch(carStat) {
@@ -209,8 +204,7 @@ unsigned int R2WD::setCarSpeedMMPS(unsigned int speedMMPS,unsigned int ms) {
 
 unsigned int R2WD::setCarSpeedMMPSArc(unsigned int speedMMPS,unsigned int radiusMM,unsigned int ms) {
 	unsigned int carStat=getCarStat();
-	int currSpeed=getCarSpeedMMPS();
-	//unsigned int currSpeed=getCarSpeedMMPS();
+	unsigned int currSpeed=getCarSpeedMMPS();
 
 	unsigned int (R2WD::*carAction)(unsigned int speedMMPS,unsigned int radiusMM);
 	switch(carStat) {
@@ -339,6 +333,7 @@ void R2WD::demoActions(unsigned int speedMMPS,unsigned int duration,unsigned int
 
 	for(int i=0;i<8;++i) {
 		if(i<4) {
+		Serial.println(i,DEC);
 			(this->*carAction[i])(0);
 			setCarSpeedMMPS(speedMMPS,uptime);
 		} else {

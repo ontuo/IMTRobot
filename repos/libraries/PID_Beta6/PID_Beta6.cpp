@@ -1,5 +1,10 @@
 
-//#include <wiring.h>
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "wiring.h"
+#endif
+
 #include <PID_Beta6.h>
 #include "fuzzy_table.h"
 #include <wiring_private.h>

@@ -3,7 +3,9 @@
 #ifndef R2WD_H
 #define R2WD_H
 
-#define WHEELSPAN 290
+#ifndef WHEELSPAN         //added by nightcat 2017-01-08 Move to Motors.h 
+#define WHEELSPAN 650     //mm
+#endif
 
 class R2WD {
 public:
@@ -17,7 +19,7 @@ public:
 	unsigned char switchMotorsReset();
 	
 	// Simple Actions
-	int setCarStop();
+	unsigned int setCarStop();
 	unsigned int setCarAdvance(unsigned int speedMMPS=0);
 	unsigned int setCarBackoff(unsigned int speedMMPS=0);
 	unsigned int setCarRotateLeft(unsigned int speedMMPS=0);
@@ -50,10 +52,10 @@ public:
 	unsigned int setCarLowerRightAngle(unsigned int speedMMPS=0,unsigned int radiusMM=WHEELSPAN,float radian=0,unsigned int uptime=500); 
 
 	// Single Wheel Control
-	int wheelLeftSetSpeedMMPS(int speedMMPS=0,bool dir=DIR_ADVANCE);
-	int wheelLeftGetSpeedMMPS() const;
-	int wheelRightSetSpeedMMPS(int speedMMPS=0,bool dir=DIR_ADVANCE);
-	int wheelRightGetSpeedMMPS() const;
+	unsigned int wheelLeftSetSpeedMMPS(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
+	unsigned int wheelLeftGetSpeedMMPS() const;
+	unsigned int wheelRightSetSpeedMMPS(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
+	unsigned int wheelRightGetSpeedMMPS() const;
 
 	// PID Control
 	bool PIDEnable(float kc=KC,float taui=TAUI,float taud=TAUD,unsigned int interval=1000);
@@ -112,10 +114,10 @@ private:
 	R2WD();	
 
 	// Base Actions
-	int setMotorAll(int speedMMPS=0,bool dir=DIR_ADVANCE);
-	int setMotorAllStop();
-	int setMotorAllAdvance(int speedMMPS=0);
-	int setMotorAllBackoff(int speedMMPS=0);
+	unsigned int setMotorAll(unsigned int speedMMPS=0,bool dir=DIR_ADVANCE);
+	unsigned int setMotorAllStop();
+	unsigned int setMotorAllAdvance(unsigned int speedMMPS=0);
+	unsigned int setMotorAllBackoff(unsigned int speedMMPS=0);
 
 	unsigned int setCarAdvanceBase(unsigned int speedMMPSL=0,unsigned int speedMMPSR=0);
 	unsigned int setCarBackoffBase(unsigned int speedMMPSL=0,unsigned int speedMMPSR=0);

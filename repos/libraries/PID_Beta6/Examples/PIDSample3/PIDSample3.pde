@@ -1,3 +1,6 @@
+#include <fuzzy_table.h>
+#include <PID_Beta6.h>
+
 /***************************************************
  * Feed Forward Example : RepRap Extruder Nozzle Temperature
  * PID input: Nozzle Temperature

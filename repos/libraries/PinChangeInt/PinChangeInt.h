@@ -3,30 +3,19 @@
 */
 
 
+#ifndef PinChangeInt_h
+#define	PinChangeInt_h
+
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
 #else
 #include "WProgram.h"
 #endif
 
-
-
-
-
-
-#ifndef PinChangeInt_h
-
-#define	PinChangeInt_h
-
 #include "PinChangeIntConfig.h"
-
 #ifndef Pins_Arduino_h
-
 #include "pins_arduino.h"
-
 #endif
-
-
 // This library was inspired by and derived from "johnboiles" (it seems) Main.PCInt Arduino Playground example
 // see: http://www.arduino.cc/playground/Main/PcInt
 
@@ -40,17 +29,29 @@
  */
 
 /*
- * Theory: all IO pins on Atmega168 are covered by Pin Change Interrupts.
+ * Theory: all IO pins on AtmegaX(168/328/1280/2560) are covered by Pin Change Interrupts.
  * The PCINT corresponding to the pin must be enabled and masked, and
  * an ISR routine provided.  Since PCINTs are per port, not per pin, the ISR
  * must use some logic to actually implement a per-pin interrupt service.
  */
 
-/* Pin to interrupt map:
+/* Pin to interrupt map ON ATmega168/328:
  * D0-D7 = PCINT 16-23 = PCIR2 = PD = PCIE2 = pcmsk2
  * D8-D13 = PCINT 0-5 = PCIR0 = PB = PCIE0 = pcmsk0
  * A0-A5 (D14-D19) = PCINT 8-13 = PCIR1 = PC = PCIE1 = pcmsk1
  */
+
+
+/* Pin to interrupt map ON ATmega1280/2560:
+ * D50-D53 = PCINT 3-0 = PCIR0 = PB = PCIE0 = pcmsk0
+ * D10-D13 = PCINT 4-7 = PCIR0 = PB = PCIE0 = pcmsk0
+ * A8-A15 (D62-D69) = PCINT 16-23 = PCIR2 = Pk = PCIE2 = pcmsk2
+ 
+  * *******D0 = PCINT 8 = PCIR1 = PE = PCIE1 = pcmsk1**********
+ * *******D14-D15 = PCINT 10-9 = PJ = PCIE1 = pcmsk1*********
+ ********NOTE:PCINT 8-15 does NOT available in this library******
+ */
+
 
 /*
 	Please make any configuration changes in the accompanying PinChangeIntConfig.h file.
@@ -58,6 +59,7 @@
 	library code (just don't replace that file when you update).
 
 */
+
 
 #ifndef MAX_PIN_CHANGE_PINS
 #define	MAX_PIN_CHANGE_PINS 8
@@ -87,11 +89,18 @@
 #define	PCattachInterrupt(pin,userFunc,mode) PCintPort::attachInterrupt(pin, userFunc,mode)
 
 
+
 typedef void (*PCIntvoidFuncPtr)(void);
 
 class PCintPort {
 				PCintPort(int index,volatile uint8_t& maskReg) :
-					portInputReg(*portInputRegister(index + 2)),
+					#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+						portInputReg(*portInputRegister((index == 0)?(2):(index + 9))),
+
+					#else
+						portInputReg(*portInputRegister(index + 2)),
+					#endif
+					
 					pcmask(maskReg),
 					PCICRbit(1 << index),
 					PCintLast(0)	{

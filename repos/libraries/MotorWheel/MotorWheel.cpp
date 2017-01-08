@@ -1,14 +1,15 @@
 #include<MotorWheel.h>
 
-Motor::Motor(unsigned char _pinPWM,unsigned char _pinDir,
+Motor::Motor(unsigned char _pinPWM,unsigned char _pinDir, unsigned char _pinDirB,
 				unsigned char _pinIRQ,unsigned char _pinIRQB,
 				struct ISRVars* _isr)
 		:PID(&speedRPMInput,&speedRPMOutput,&speedRPMDesired,KC,TAUI,TAUD),
-		 pinPWM(_pinPWM),pinDir(_pinDir),isr(_isr) {
+		 pinPWM(_pinPWM),pinDir(_pinDir),pinDirB(_pinDirB),isr(_isr) {
 	debug();
 
 	isr->pinIRQ=_pinIRQ;
 	isr->pinIRQB=_pinIRQB;
+	
 
 /*for maple*/	
 #if defined(BOARD_maple) || defined(BOARD_maple_native) || defined(BOARD_maple_mini)
@@ -18,8 +19,9 @@ Motor::Motor(unsigned char _pinPWM,unsigned char _pinDir,
 
 /*for arduino*/	
 #else
-	pinMode(pinPWM,OUTPUT);
-	pinMode(pinDir,OUTPUT);
+	pinMode(pinPWM,OUTPUT);  //added by nightcat 2017-01-04 as ENA
+	pinMode(pinDir,OUTPUT);  //added by nightcat 2017-01-04 as IN1
+	pinMode(pinDirB,OUTPUT); //added by nightcat 2017-01-04 as IN2
 	pinMode(isr->pinIRQ,INPUT);
 	
 #endif
@@ -37,7 +39,13 @@ void Motor::setupInterrupt() {
 
 /*for arduino*/
 #else
-	if(isr->pinIRQ==2 || isr->pinIRQ==3) attachInterrupt(isr->pinIRQ-2,isr->ISRfunc,TRIGGER);
+	if(isr->pinIRQ==2 || isr->pinIRQ==3) {
+		attachInterrupt(isr->pinIRQ-2,isr->ISRfunc,TRIGGER);
+	} else if (isr->pinIRQ==18 || isr->pinIRQ==19) { // Added by nightcat 2017-01-07 for mega 2560
+		attachInterrupt(isr->pinIRQ-14,isr->ISRfunc,TRIGGER);
+	} else if (isr->pinIRQ==20 || isr->pinIRQ==21) { // Added by nightcat 2017-01-07 for mega 2560
+		attachInterrupt(isr->pinIRQ-18,isr->ISRfunc,TRIGGER);
+	}
 	else {
 		PCattachInterrupt(isr->pinIRQ,isr->ISRfunc,TRIGGER);	// RISING --> CHANGE 201207
 	}
@@ -73,8 +81,18 @@ unsigned int Motor::runPWM(unsigned int PWM,bool dir,bool saveDir) {
 	debug();
 	speedPWM=PWM;
 	if(saveDir) desiredDirection=dir;
+	// digitalWrite(pinDir,dir);
+	//Added by nightcat , 2017-01-03, 3pin control direction and speed
+	if(dir == DIR_ADVANCE){
+		digitalWrite(pinDir, HIGH);
+		digitalWrite(pinDirB,LOW);
+	} else {
+		digitalWrite(pinDir, LOW);
+		digitalWrite(pinDirB,HIGH);		
+	}
+	
 	analogWrite(pinPWM,PWM);
-	digitalWrite(pinDir,dir);
+	
 	return PWM;
 }
 unsigned int Motor::advancePWM(unsigned int PWM) {
@@ -196,18 +214,48 @@ bool Motor::PIDRegulate(bool doRegulate) {
 	} else {
 		speedRPMInput=SPEEDPPS2SPEEDRPM(isr->speedPPS);
 	}
-
+	
+	/*
+	Serial.print("PIDGetSpeedRPMDesired -> ");
+	Serial.println(PIDGetSpeedRPMDesired());
+	
+	Serial.print("getDesiredDir -> ");
+	Serial.println(getDesiredDir());		
+	
+	Serial.print("speedPPS -> ");
+	Serial.println(isr->speedPPS);		
+	
+	Serial.print("getCurrDir -> ");
+	Serial.println(getCurrDir());		
+	
+	Serial.print("speedRPMInput -> ");
+	Serial.println(speedRPMInput);
+	*/
+	
 	PID::Compute();
 	if(doRegulate && PID::JustCalculated()) {
 		speed2DutyCycle+=speedRPMOutput;
+		
+		//Serial.print("speedRPMOutput -> ");
+		//Serial.println(speedRPMOutput);
 
+		
 		if(speed2DutyCycle>=MAX_SPEEDRPM) speed2DutyCycle=MAX_SPEEDRPM;
 		else if(speed2DutyCycle<=-MAX_SPEEDRPM)  speed2DutyCycle=-MAX_SPEEDRPM;
+		
+		//Serial.print("speed2DutyCycle -> ");
+		//Serial.println(speed2DutyCycle);
+		
 		if(speed2DutyCycle>=0) {
+			//Serial.print("+PWD -> ");
+			//Serial.println(map(abs(speed2DutyCycle),0,MAX_SPEEDRPM,0,MAX_PWM));	
 			runPWM(map(speed2DutyCycle,0,MAX_SPEEDRPM,0,MAX_PWM),getDesiredDir(),false);
 		} else {
+			//Serial.print("-PWD -> ");
+			//Serial.println(map(abs(speed2DutyCycle),0,MAX_SPEEDRPM,0,MAX_PWM));			
 			runPWM(map(abs(speed2DutyCycle),0,MAX_SPEEDRPM,0,MAX_PWM),!getDesiredDir(),false);
 		}
+
 		return true;
 	}
 	return false;
@@ -332,10 +380,10 @@ void Motor::debugger() const {
 }
 
 
-GearedMotor::GearedMotor(unsigned char _pinPWM,unsigned char _pinDir,
+GearedMotor::GearedMotor(unsigned char _pinPWM,unsigned char _pinDir,unsigned char _pinDirB,
 			unsigned char _pinIRQ,unsigned char _pinIRQB,
 			struct ISRVars* _isr,unsigned int ratio):
-				Motor(_pinPWM,_pinDir,_pinIRQ,_pinIRQB,_isr),_ratio(ratio) {
+				Motor(_pinPWM,_pinDir,_pinDirB,_pinIRQ,_pinIRQB,_isr),_ratio(ratio) {
 	debug();
 }
 unsigned int GearedMotor::getRatio() const {
@@ -371,11 +419,11 @@ float GearedMotor::setGearedSpeedRPM(float gearedSpeedRPM) {
 	return getGearedSpeedRPM();
 }
 
-MotorWheel::MotorWheel(unsigned char _pinPWM,unsigned char _pinDir,
+MotorWheel::MotorWheel(unsigned char _pinPWM,unsigned char _pinDir,unsigned char _pinDirB,
 						unsigned char _pinIRQ,unsigned char _pinIRQB,
 						struct ISRVars* _isr,
 						unsigned int ratio,unsigned int cirMM):
-						GearedMotor(_pinPWM,_pinDir,_pinIRQ,_pinIRQB,_isr,ratio),_cirMM(cirMM) {
+						GearedMotor(_pinPWM,_pinDir,_pinDirB,_pinIRQ,_pinIRQB,_isr,ratio),_cirMM(cirMM) {
 	debug();
 
 }
@@ -427,7 +475,7 @@ int MotorWheel::getAccMMPSS() const {
 // direction sensitive, 201208
 int MotorWheel::getSpeedMMPS() const {
 	debug();
-	return int(getSpeedCMPM()/6);
+	return int(getSpeedCMPM()/6);//(mm/sec)/(cm/min) = 6
 }
 
 int MotorWheel::setSpeedMMPS(unsigned int mm,bool dir) {
